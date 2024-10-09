@@ -6,15 +6,6 @@ const port = 3000;
 
 let veiculos = [];
 
-// CREATE TABLE veiculos (
-//     id INT AUTO_INCREMENT PRIMARY KEY,
-//     marca VARCHAR(50) NOT NULL,
-//     modelo VARCHAR(50) NOT NULL,
-//     ano INT NOT NULL,
-//     cor VARCHAR(30),
-//     preco DECIMAL(10, 2) NOT NULL
-// );
-
 // novo veículo
 app.post('/inserir', (req, res) => {
     const { marca, modelo, ano, cor, proprietario } = req.body;
@@ -23,44 +14,52 @@ app.post('/inserir', (req, res) => {
         `INSERT INTO veiculos (marca, modelo, ano, cor, proprietario) VALUES (?, ?, ?, ?, ?)`,
         [marca, modelo, Number(ano), cor, proprietario],
         function (err, results, fields) {
-          if (err) {
-            console.error('Erro na inserção:', err);
-            return;
-          }
-          console.log(results);
-          console.log(fields);
+            if (err) {
+                console.error('Erro na inserção:', err);
+                return;
+            }
+            console.log(results);
+            console.log(fields);
         }
-      );
+    );
     res.send(`Veículo inserido!\n\nMarca: ${marca} \nModelo: ${modelo} \nAno: ${ano} \nCor: ${cor} \nProprietário: ${proprietario}`);
 });
 
 // selecionar todos os veículos
 app.get('/veiculos', (req, res) => {
     db.query(
-      `SELECT * FROM veiculos`,
-      function (err, results, fields) {
-        if (err) {
-          console.error('Erro na consulta:', err);
-          return res.status(500).json({ error: 'Erro ao consultar veículos' });
+        `SELECT * FROM veiculos`,
+        function (err, results, fields) {
+            if (err) {
+                console.error('Erro na consulta:', err);
+                return res.status(500).json({ error: 'Erro ao consultar veículos' });
+            }
+            // Retorna os resultados como um objeto JSON
+            return res.json(results);
         }
-        // Retorna os resultados como um objeto JSON
-        return res.json(results);
-      }
     );
-  });
+});
 
 // atualizar por ID
 app.put('/atualizar/:id', (req, res) => {
     const { id } = req.params;
     const { marca, modelo, ano, cor, proprietario } = req.body;
-    const veiculoIndex = veiculos.findIndex(v => v.id == id);
 
-    if (veiculoIndex !== -1) {
-        veiculos[veiculoIndex] = { id, marca, modelo, ano, cor, proprietario };
-        res.send(`Veículo atualizado!\nNovo ID: ${id} \nNova marca: ${marca} \nNovo modelo: ${modelo} \nNovo ano: ${ano} \nNova cor: ${cor} \nNovo proprietário: ${proprietario}`);
-    } else {
-        res.status(404).send('Veículo não encontrado');
-    }
+    db.query(
+        `UPDATE veiculos set marca = ?, modelo = ?, ano = ?, cor = ?, proprietario = ? WHERE id = ?`,
+        [marca, modelo, Number(ano), cor, proprietario, id],
+        function (err, results, fields) {
+            if (err) {
+                console.error('Erro na atualização:', err);
+                return;
+            }
+            console.log(results);
+            console.log(fields);
+        }
+    );
+    res.send(`Veículo atualizado!\n${id}\nMarca: ${marca} \nModelo: ${modelo} \nAno: ${ano} \nCor: ${cor} \nProprietário: ${proprietario}`);
+
+
 });
 
 // deletar por ID
@@ -72,6 +71,7 @@ app.delete('/deletar/id/:id', (req, res) => {
         veiculos.splice(veiculoIndex, 1); // para remover o splice e 1 só
         res.send('Veículo deletado com sucesso');
     } else {
+
         res.status(404).send('Veículo não encontrado');
     }
 });
@@ -102,7 +102,7 @@ app.get('/veiculos/:id', (req, res) => {
         res.status(404).send('Veículo não encontrado');
     }
 });
- 
+
 // selecionar por ano
 app.get('/veiculos/ano/:ano', (req, res) => {
     const { ano } = req.params;
