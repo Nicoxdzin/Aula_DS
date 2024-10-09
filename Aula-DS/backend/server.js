@@ -34,6 +34,21 @@ app.post('/inserir', (req, res) => {
     res.send(`Veículo inserido!\n\nMarca: ${marca} \nModelo: ${modelo} \nAno: ${ano} \nCor: ${cor} \nProprietário: ${proprietario}`);
 });
 
+// selecionar todos os veículos
+app.get('/veiculos', (req, res) => {
+    db.query(
+      `SELECT * FROM veiculos`,
+      function (err, results, fields) {
+        if (err) {
+          console.error('Erro na consulta:', err);
+          return res.status(500).json({ error: 'Erro ao consultar veículos' });
+        }
+        // Retorna os resultados como um objeto JSON
+        return res.json(results);
+      }
+    );
+  });
+
 // atualizar por ID
 app.put('/atualizar/:id', (req, res) => {
     const { id } = req.params;
@@ -74,11 +89,6 @@ app.delete('/deletar/modelo/:modelo', (req, res) => {
     } else {
         res.status(404).send('Nenhum veículo encontrado com esse modelo');
     }
-});
-
-// selecionar todos os veículos
-app.get('/veiculos', (req, res) => {
-    res.json(veiculos);
 });
 
 // selecionar por ID
